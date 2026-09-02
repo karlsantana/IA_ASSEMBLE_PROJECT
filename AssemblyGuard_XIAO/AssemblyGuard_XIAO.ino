@@ -547,23 +547,32 @@ void loop() {
     else                        frames_iguais = 1;
     leitura_ant = leitura;
 
+    // Regra simplificada: o estado so anda PARA FRENTE na sequencia.
+    // - leitura a frente do estado (confirmada) -> avanca ate ela;
+    //   se pulou etapa no caminho, registra alerta de desvio mas NAO
+    //   trava (perder uma etapa de vista nao pode impedir o fim);
+    // - pilha na SAIDA e sempre FIM -> fecha o ciclo;
+    // - depois do FIM, leitura de ESPERA rearma para o proximo ciclo;
+    // - leitura atras do estado e ignorada (nao regride, nao alerta).
     bool alerta = false;
-    if (frames_iguais >= N_CONFIRMA && leitura != estado) {
-        if (leitura == proxima(estado)) {
-            estado = leitura;                       // avancou na ordem certa
+    if (frames_iguais >= N_CONFIRMA) {
+        if (leitura > estado) {
+            if (leitura > proxima(estado)) {        // pulou etapa: desvio
+                alerta = true;
+                sinal_alerta(L, leitura);
+                salvar_jpeg_alerta(millis());
+            }
+            estado = leitura;
             Serial.printf("== etapa: %s\n", NOME_ETAPA[estado]);
             if (estado == FIM) {
                 ciclos_ok++;
                 Serial.printf("== CICLO %d COMPLETO em %.1f s\n", ciclos_ok,
                               (millis() - t_inicio_ciclo) / 1000.0f);
-                t_inicio_ciclo = millis();
             }
-        } else if (leitura == ESPERA) {
-            // ausencia de deteccao nao e desvio (operador saiu, oclusao)
-        } else {
-            alerta = true;                          // fora de ordem!
-            sinal_alerta(L, leitura);
-            salvar_jpeg_alerta(millis());
+        } else if (estado == FIM && leitura == ESPERA) {
+            estado = ESPERA;                        // pronto p/ novo ciclo
+            t_inicio_ciclo = millis();
+            Serial.println("== novo ciclo");
         }
     }
 
