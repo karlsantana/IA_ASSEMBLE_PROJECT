@@ -53,6 +53,12 @@
 #define USA_LED  1        // LED onboard (GPIO21, compartilhado com SD CS)
 #define USA_WEB  1        // 1 = servidor web com stream da camera
 
+// Orientacao da camera (conferir no stream: operador no TOPO, estoque/
+// entrada a DIREITA). Camera montada de cabeca p/ baixo: ponha os DOIS em 1
+// (girar 180 = vflip + hmirror). Imagem so espelhada: apenas CAM_HMIRROR 1.
+#define CAM_VFLIP   0     // 1 = vira verticalmente
+#define CAM_HMIRROR 0     // 1 = espelha horizontalmente
+
 #define PIN_SD_CS   21
 #define PIN_LED     21    // mesmo GPIO; ver nota acima
 
@@ -70,7 +76,7 @@
 // taxa de falso positivo (criterio: <= 1 alerta falso por ciclo).
 #define N_CONFIRMA  3
 
-#define CONF_MIN    0.60f // confianca minima de um centroide do FOMO
+#define CONF_MIN    0.40f // confianca minima (BAIXADO p/ calibracao; voltar a 0.60 depois)
 
 // ---------------------------------------------------------------------
 // CAMERA - pinos do XIAO ESP32S3 Sense (CAMERA_MODEL_XIAO_ESP32S3)
@@ -170,26 +176,80 @@ static void web_publica_frame(const uint8_t* buf, size_t len) {
 }
 
 static esp_err_t handler_index(httpd_req_t* req) {
+    // pagina com overlay: zonas desenhadas sobre o video, centroides ao
+    // vivo e letreiro de estado (pisca vermelho no alerta)
     static const char html[] =
         "<!doctype html><html><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1'>"
         "<title>AssemblyGuard</title><style>"
         "body{font-family:sans-serif;background:#111;color:#eee;margin:0;"
         "display:flex;flex-direction:column;align-items:center}"
-        "h1{font-size:1.1rem;margin:.8rem}img{width:min(96vw,640px);"
-        "border:2px solid #444;border-radius:6px}"
-        "pre{background:#222;padding:.6rem 1rem;border-radius:6px;"
-        "font-size:.85rem;max-width:96vw;overflow-x:auto}"
+        "h1{font-size:1.1rem;margin:.6rem}"
+        "#w{position:relative;width:min(96vw,640px)}"
+        "#v{width:100%;display:block;border:2px solid #444;border-radius:6px;"
+        "box-sizing:border-box}"
+        "#c{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}"
+        "#b{font-size:.95rem;background:#222;padding:.4rem 1rem;"
+        "border-radius:6px;margin:.5rem;min-height:1.2em}"
+        "#b.al{background:#a00}"
+        "pre{background:#222;padding:.5rem 1rem;border-radius:6px;"
+        "font-size:.8rem;max-width:96vw;overflow-x:auto;min-height:1em}"
         "</style></head><body><h1>AssemblyGuard &mdash; Bloq Volt</h1>"
-        "<img id='v'><pre id='s'>aguardando...</pre>"
-        "<script>document.getElementById('v').src="
-        "'http://'+location.hostname+':81/stream';"
-        "setInterval(async()=>{try{const r=await fetch('/status');"
-        "document.getElementById('s').textContent="
-        "JSON.stringify(await r.json(),null,1);}catch(e){}},700);"
+        "<div id='w'><img id='v'><canvas id='c'></canvas></div>"
+        "<div id='b'>aguardando...</div><pre id='s'></pre>"
+        "<script>"
+        "var Z=null,CO={peca:'#3af',pilha:'#fd3',ferro_solda:'#f55',"
+        "aplicador_cola:'#5f5'};"
+        "var v=document.getElementById('v'),c=document.getElementById('c'),"
+        "b=document.getElementById('b');"
+        "v.src='http://'+location.hostname+':81/stream';"
+        "fetch('/zonas').then(function(r){return r.json()})"
+        ".then(function(j){Z=j});"
+        "function dets(t){var a=[];t.split(';').forEach(function(p){"
+        "p=p.trim();if(!p)return;var m=p.split(' ');if(m.length<3)return;"
+        "var xy=m[2].replace('(','').replace(')','').split(',');"
+        "a.push({l:m[0],c:m[1],x:+xy[0],y:+xy[1]})});return a}"
+        "function draw(st){var W=v.clientWidth,H=v.clientHeight;"
+        "c.width=W;c.height=H;var g=c.getContext('2d');g.clearRect(0,0,W,H);"
+        "g.font='12px sans-serif';"
+        "if(Z){for(var n in Z){var z=Z[n];"
+        "var on=(n=='entrada'&&st.pilha_entrada)||(n=='saida'&&st.pilha_saida)"
+        "||(n=='bancada'&&st.pecas_bancada>0)"
+        "||(n=='descanso_ferro'&&st.ferro_em_uso);"
+        "g.strokeStyle=on?'#0f0':'#999';g.lineWidth=on?3:1;"
+        "g.strokeRect(z[0]*W,z[1]*H,(z[2]-z[0])*W,(z[3]-z[1])*H);"
+        "g.fillStyle=g.strokeStyle;g.fillText(n,z[0]*W+4,z[1]*H+14)}}"
+        "dets(st.dets||'').forEach(function(d){var x=d.x*W,y=d.y*H;"
+        "g.strokeStyle=CO[d.l]||'#fff';g.lineWidth=3;g.beginPath();"
+        "g.arc(x,y,9,0,7);g.stroke();g.fillStyle=g.strokeStyle;"
+        "g.fillText(d.l+' '+d.c+' ('+d.x.toFixed(2)+','+d.y.toFixed(2)+')',"
+        "Math.min(x+12,W-150),Math.max(y-8,12))})}"
+        "setInterval(async function(){try{"
+        "var r=await fetch('/status');var st=await r.json();"
+        "b.textContent='estado: '+st.estado+' | leitura: '+st.leitura"
+        "+' | pecas: '+st.pecas_bancada+' | ciclos: '+st.ciclos"
+        "+' | '+st.latencia_ms+' ms';"
+        "b.className=st.alerta?'al':'';"
+        "document.getElementById('s').textContent=st.dets||'';"
+        "draw(st)}catch(e){}},600);"
         "</script></body></html>";
     httpd_resp_set_type(req, "text/html");
     return httpd_resp_send(req, html, HTTPD_RESP_USE_STRLEN);
+}
+
+static esp_err_t handler_zonas(httpd_req_t* req) {
+    char buf[280];
+    snprintf(buf, sizeof(buf),
+             "{\"entrada\":[%.2f,%.2f,%.2f,%.2f],"
+             "\"bancada\":[%.2f,%.2f,%.2f,%.2f],"
+             "\"descanso_ferro\":[%.2f,%.2f,%.2f,%.2f],"
+             "\"saida\":[%.2f,%.2f,%.2f,%.2f]}",
+             ZONA_ENTRADA.x1, ZONA_ENTRADA.y1, ZONA_ENTRADA.x2, ZONA_ENTRADA.y2,
+             ZONA_BANCADA.x1, ZONA_BANCADA.y1, ZONA_BANCADA.x2, ZONA_BANCADA.y2,
+             ZONA_FERRO.x1,   ZONA_FERRO.y1,   ZONA_FERRO.x2,   ZONA_FERRO.y2,
+             ZONA_SAIDA.x1,   ZONA_SAIDA.y1,   ZONA_SAIDA.x2,   ZONA_SAIDA.y2);
+    httpd_resp_set_type(req, "application/json");
+    return httpd_resp_send(req, buf, HTTPD_RESP_USE_STRLEN);
 }
 
 static esp_err_t handler_status(httpd_req_t* req) {
@@ -274,8 +334,11 @@ static void iniciar_web() {
                           .handler = handler_index, .user_ctx = nullptr};
         httpd_uri_t u3 = {.uri = "/status", .method = HTTP_GET,
                           .handler = handler_status, .user_ctx = nullptr};
+        httpd_uri_t u4 = {.uri = "/zonas", .method = HTTP_GET,
+                          .handler = handler_zonas, .user_ctx = nullptr};
         httpd_register_uri_handler(srv, &u1);
         httpd_register_uri_handler(srv, &u3);
+        httpd_register_uri_handler(srv, &u4);
     }
 
     httpd_config_t cfg2 = HTTPD_DEFAULT_CONFIG();
@@ -349,7 +412,11 @@ void setup() {
     // reforca o tamanho no sensor e descarta os frames de aquecimento
     // (os primeiros frames da OV2640 podem vir em outra resolucao)
     sensor_t* sens = esp_camera_sensor_get();
-    if (sens) sens->set_framesize(sens, FRAMESIZE_QVGA);
+    if (sens) {
+        sens->set_framesize(sens, FRAMESIZE_QVGA);
+        sens->set_vflip(sens, CAM_VFLIP);
+        sens->set_hmirror(sens, CAM_HMIRROR);
+    }
     for (int i = 0; i < 3; i++) {
         camera_fb_t* fb = esp_camera_fb_get();
         if (fb) esp_camera_fb_return(fb);
@@ -518,11 +585,15 @@ void loop() {
     // ------- agrega os centroides em sinais de processo -------
     Leitura L = {};
     L.alvo_x = -1; L.alvo_y = -1;
+    char dets[160]; int dlen = 0; dets[0] = 0;   // p/ mostrar no painel web
     for (uint32_t i = 0; i < result.bounding_boxes_count; i++) {
         auto& bb = result.bounding_boxes[i];
         if (bb.value < CONF_MIN) continue;
         float cx = (bb.x + bb.width * 0.5f) / EI_CLASSIFIER_INPUT_WIDTH;
         float cy = (bb.y + bb.height * 0.5f) / EI_CLASSIFIER_INPUT_HEIGHT;
+        if (dlen < (int)sizeof(dets) - 40)
+            dlen += snprintf(dets + dlen, sizeof(dets) - dlen,
+                             "%s %.2f (%.2f,%.2f); ", bb.label, bb.value, cx, cy);
 
         if (strcmp(bb.label, "peca") == 0) {
             if (dentro(ZONA_BANCADA, cx, cy)) L.pecas_bancada++;
@@ -589,13 +660,15 @@ void loop() {
                  "{\"estado\":\"%s\",\"leitura\":\"%s\",\"pecas_bancada\":%d,"
                  "\"ferro_em_uso\":%s,\"pilha_entrada\":%s,"
                  "\"pilha_bancada\":%s,\"pilha_saida\":%s,"
-                 "\"ciclos\":%d,\"latencia_ms\":%lu,\"alerta\":%s}",
+                 "\"ciclos\":%d,\"latencia_ms\":%lu,\"alerta\":%s,"
+                 "\"dets\":\"%s\"}",
                  NOME_ETAPA[estado], NOME_ETAPA[leitura], L.pecas_bancada,
                  L.ferro_em_uso ? "true" : "false",
                  L.pilha_entrada ? "true" : "false",
                  L.pilha_bancada ? "true" : "false",
                  L.pilha_saida ? "true" : "false",
-                 ciclos_ok, (unsigned long)lat, alerta ? "true" : "false");
+                 ciclos_ok, (unsigned long)lat, alerta ? "true" : "false",
+                 dets);
         xSemaphoreGive(web_mutex);
     }
     manter_wifi();
