@@ -14,8 +14,8 @@ cada coisa está, e o que falta**, para continuar o trabalho em qualquer PC.
 
 **A pasta `Ia_esp32` inteira já contém tudo.** Foi conferido:
 
-- `ei-assemblyguard-arduino-1.0.1.zip` — **o modelo treinado v1** (biblioteca
-  Arduino, int8 + EON). Cópia do original baixado em `D:\ei-assemblyguard-arduino-1.0.1-impulse-#1.zip`.
+- `modelos/` — os modelos treinados exportados do EI (bibliotecas Arduino,
+  int8 + EON): `1.0.1` = v1 baseline, `1.0.2` = **v2 atual** (4 classes).
 - `videos/` — os 3 vídeos-fonte (73 MB). O vídeo `15.43.32` (sessão C) é
   também a **rede de segurança do demo** (reproduzir num monitor e apontar o
   XIAO para ele).
@@ -195,24 +195,28 @@ baixado, falta rodar no hardware).
 
 ---
 
-## 4. Mapa da pasta
+## 4. Mapa da pasta (reorganizada em 28/08 p/ compartilhar)
 
 | Arquivo/pasta | O que é |
 |---|---|
-| `LEIA-ME_PRIMEIRO.md` | **este arquivo** |
-| `PLANO_V2_DETECCAO.md` | resposta ponto a ponto ao mentor: arquitetura V2, critérios de sucesso, marcos |
-| `GUIA_EDGE_IMPULSE.md` | passo a passo detalhado do Studio (upload → anotação → treino → deploy → flash) |
-| `DOCUMENTACAO_PREPARACAO_DATASET.md` | histórico da V1 (classificação) — seção 9 marca o que foi superado |
-| `AssemblyGuard_XIAO.ino` | **firmware** (FOMO + zonas + estados + SD + servidor web) |
-| `ei-assemblyguard-arduino-1.0.1.zip` | **modelo treinado v1** (biblioteca Arduino p/ Add .ZIP Library) |
+| `README.md` | apresentação do projeto (porta de entrada p/ grupo e professor) |
+| `LEIA-ME_PRIMEIRO.md` | **este arquivo** — handoff detalhado |
+| `docs/PLANO_V2_DETECCAO.md` | resposta ponto a ponto ao mentor: arquitetura V2, critérios de sucesso, marcos |
+| `docs/GUIA_EDGE_IMPULSE.md` | passo a passo detalhado do Studio (upload → anotação → treino → deploy → flash) |
+| `docs/GUIA_ESTAGIARIA.md` (+ `.html`) | guia de anotação/retreino/export para quem revisa o dataset |
+| `docs/DOCUMENTACAO_PREPARACAO_DATASET.md` | histórico da V1 (classificação) — seção 9 marca o que foi superado |
+| `AssemblyGuard_XIAO/AssemblyGuard_XIAO.ino` | **firmware** (FOMO + zonas + estados + SD + painel web com overlay) |
+| `modelos/ei-assemblyguard-arduino-1.0.1.zip` | modelo v1 (baseline) — biblioteca Arduino p/ Add .ZIP Library |
+| `modelos/ei-assemblyguard-arduino-1.0.2-impulse_1.zip` | **modelo v2** (4 classes, pós-revisão) — o atual |
 | `anotar/` | 200 frames extraídos (train/ = sessão C, test/ = sessão B) + previews |
 | `videos/` | os 3 vídeos-fonte (B = A sem overlay de texto; C = sessão limpa) |
-| `pipeline_deteccao.py` | extração/limpeza dos frames da V2 (ROI, inpainting, template matching) |
-| `pipeline_assemblyguard.py` | pipeline da V1 (OCR + limpeza) — mantido como histórico e por reuso |
-| `inspecionar_videos.py` | folhas de contato / comparativos que revelaram A≡B e a sessão C |
-| `gerar_preanotacao.py` | tentativa de pré-anotação local por cor — **descartada** (o AI labeling do EI a substituiu); mantido só como registro |
-| `AssemblyGuard_Treinamento.ipynb` + `assemblyguard_dataset_limpo.zip` + `relatorio_dataset.json` | artefatos da V1 — viram *baseline comparativo* e seção metodológica no relatório |
-| `inspecao/`, `comparacao_antes_depois.jpg`, `preview_dataset_por_classe.jpg` | evidências visuais usadas nas decisões |
+| `scripts/pipeline_deteccao.py` | extração/limpeza dos frames da V2 (ROI, inpainting, template matching) |
+| `scripts/pipeline_assemblyguard.py` | pipeline da V1 (OCR + limpeza) — mantido como histórico e por reuso |
+| `scripts/inspecionar_videos.py` | folhas de contato / comparativos que revelaram A≡B e a sessão C |
+| `scripts/gerar_preanotacao.py` | pré-anotação local por cor — **descartada**; mantida só como registro |
+| `scripts/assemblyguard_pc.py` | inferência no PC (Hikvision RTSP / vídeo) com o `.tflite` — rascunho |
+| `historico_v1/` | notebook, dataset limpo e relatório da V1 — *baseline comparativo* do relatório |
+| `evidencias/` | folhas de contato, ROIs e comparativos usados nas decisões |
 
 ## 5. Requisitos no PC novo
 
