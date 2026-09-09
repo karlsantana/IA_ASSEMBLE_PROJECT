@@ -5,6 +5,9 @@ AssemblyGuard. A referência descreve o comportamento implementado no código
 atual; decisões de arquitetura e procedimentos completos continuam nos guias
 em [`docs/`](../).
 
+Para uma visão de alto nível antes de entrar nas funções, abra a [árvore
+interativa de processos](../arvore-processos.html).
+
 ## Python
 
 ### Dataset V2

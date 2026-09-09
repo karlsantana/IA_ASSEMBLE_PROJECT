@@ -1,5 +1,7 @@
 # AssemblyGuard
 
+![Logo AssemblyGuard](docs/assets/assemblyguard-logo.svg)
+
 ![Amostra do dataset do AssemblyGuard](evidencias/preview_dataset_por_classe.jpg)
 
 **Monitoramento embarcado da montagem do Bloq Volt com visão computacional e TinyML.**
@@ -11,6 +13,8 @@ Detecção de objetos em tempo real, validação da sequência por zonas e rastr
 [![OpenCV](https://img.shields.io/badge/OpenCV-4.x-5C3EE8?logo=opencv&logoColor=white)](https://opencv.org/)
 [![Edge Impulse](https://img.shields.io/badge/Edge%20Impulse-FOMO-111111)](https://www.edgeimpulse.com/)
 ![Status](https://img.shields.io/badge/status-prot%C3%B3tipo%20funcional-F2C94C)
+
+> **Página principal:** [abrir o AssemblyGuard no GitHub Pages](https://karlsantana.github.io/IA_ASSEMBLE_PROJECT/)
 
 O AssemblyGuard usa um **XIAO ESP32S3 Sense** para executar um modelo FOMO
 treinado no Edge Impulse sobre os frames da câmera. Os centroides detectados
@@ -26,6 +30,46 @@ detecções e estado sem depender de nuvem durante a operação.
 ## Visão geral
 
 ![Arquitetura visual do processo](evidencias/comparacao_antes_depois.jpg)
+
+### Árvore interativa
+
+Abra a [árvore de processos](https://karlsantana.github.io/IA_ASSEMBLE_PROJECT/)
+ou a [versão local no repositório](docs/arvore-processos.html) para navegar pelo
+fluxo completo do projeto. A página permite buscar por etapa ou arquivo,
+selecionar cada fase e abrir diretamente o código e os guias relacionados.
+Os textos, métricas, status e links da árvore ficam centralizados em
+[arvore-processos.json](docs/arvore-processos.json); edite esse arquivo para
+atualizar o conteúdo sem alterar o layout.
+
+Para testar localmente com o JSON carregado:
+
+```bash
+python -m http.server 8000
+```
+
+Depois acesse `http://localhost:8000/docs/arvore-processos.html`.
+
+### Publicar no GitHub Pages
+
+O arquivo [index.html](index.html) é a entrada principal do site e encaminha
+para a árvore interativa. O workflow
+[pages.yml](.github/workflows/pages.yml) publica automaticamente o repositório
+quando houver push para `marco`, `main` ou `master`.
+
+Na primeira publicação, confirme no GitHub:
+
+1. Abra **Settings → Pages**.
+2. Em **Build and deployment → Source**, selecione **GitHub Actions**.
+3. Envie as alterações para a branch `marco`:
+
+```bash
+git add README.md index.html docs/arvore-processos.html docs/arvore-processos.json docs/assets .github/workflows/pages.yml
+git commit -m "Publicar arvore interativa no GitHub Pages"
+git push origin marco
+```
+
+Após o workflow terminar, a página estará em
+`https://karlsantana.github.io/IA_ASSEMBLE_PROJECT/`.
 
 | Camada | Responsabilidade | Entrada / saída |
 | --- | --- | --- |
@@ -131,6 +175,8 @@ preencha `WIFI_STA_SSID` e `WIFI_STA_PASS` no sketch.
 
 ## Documentação complementar
 
+- [Árvore interativa de processos](docs/arvore-processos.html)
+- [Logo vetorial do projeto](docs/assets/assemblyguard-logo.svg)
 - [Plano V2 e critérios de sucesso](docs/PLANO_V2_DETECCAO.md)
 - [Preparação histórica do dataset V1](docs/DOCUMENTACAO_PREPARACAO_DATASET.md)
 - [Guia completo do Edge Impulse](docs/GUIA_EDGE_IMPULSE.md)
