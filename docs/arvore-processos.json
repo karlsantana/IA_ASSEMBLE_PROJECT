@@ -11,7 +11,7 @@
     "searchPlaceholder": "Buscar etapa, arquivo ou tecnologia...",
     "footer": "AssemblyGuard · TinyML aplicado à montagem do Bloq Volt · abra esta página por um servidor local ou pelo GitHub Pages.",
     "logo": {
-      "src": "docs/assets/assemblyguard-logo.svg",
+      "src": "assets/assemblyguard-logo.svg",
       "alt": "Logo AssemblyGuard"
     }
   },
