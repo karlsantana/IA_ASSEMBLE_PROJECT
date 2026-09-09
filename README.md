@@ -14,7 +14,7 @@ Detecção de objetos em tempo real, validação da sequência por zonas e rastr
 [![Edge Impulse](https://img.shields.io/badge/Edge%20Impulse-FOMO-111111)](https://www.edgeimpulse.com/)
 ![Status](https://img.shields.io/badge/status-prot%C3%B3tipo%20funcional-F2C94C)
 
-> **Página principal:** [abrir o AssemblyGuard no GitHub Pages](https://karlsantana.github.io/IA_ASSEMBLE_PROJECT/)
+> **Página principal:** [abrir o AssemblyGuard no GitHub Pages](https://bottomup.com.br/wp-content/ghss-static-sites/site-ceac2fd1-c427-4f30-8096-f4ca81a9d61c/docs/arvore-processos.html)
 
 O AssemblyGuard usa um **XIAO ESP32S3 Sense** para executar um modelo FOMO
 treinado no Edge Impulse sobre os frames da câmera. Os centroides detectados
@@ -33,7 +33,7 @@ detecções e estado sem depender de nuvem durante a operação.
 
 ### Árvore interativa
 
-Abra a [árvore de processos](https://karlsantana.github.io/IA_ASSEMBLE_PROJECT/)
+Abra a [árvore de processos](https://bottomup.com.br/wp-content/ghss-static-sites/site-ceac2fd1-c427-4f30-8096-f4ca81a9d61c/docs/arvore-processos.html)
 ou a [versão local no repositório](docs/arvore-processos.html) para navegar pelo
 fluxo completo do projeto. A página permite buscar por etapa ou arquivo,
 selecionar cada fase e abrir diretamente o código e os guias relacionados.
@@ -69,7 +69,7 @@ git push origin marco
 ```
 
 Após o workflow terminar, a página estará em
-`https://karlsantana.github.io/IA_ASSEMBLE_PROJECT/`.
+`https://bottomup.com.br/wp-content/ghss-static-sites/site-ceac2fd1-c427-4f30-8096-f4ca81a9d61c/docs/arvore-processos.html`.
 
 | Camada | Responsabilidade | Entrada / saída |
 | --- | --- | --- |
