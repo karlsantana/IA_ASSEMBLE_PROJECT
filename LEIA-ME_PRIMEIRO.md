@@ -1,6 +1,7 @@
 # AssemblyGuard — LEIA-ME PRIMEIRO (handoff para outro PC)
 
-**Atualizado em:** 24/08/2026, ~01h
+**Criado em:** 24/08/2026 (documento de passagem de bastão; o estado atual do
+projeto — resultados, marcos e limitações — está em `docs/RELATORIO_PROJETO.md`)
 **Projeto:** AssemblyGuard — monitoramento das etapas de montagem do Bloq Volt
 com detecção de objetos (FOMO) rodando no **XIAO ESP32S3 Sense**
 **Curso:** IESTI01 TinyML (mentor: Prof. Marcelo Rovai)
@@ -26,7 +27,7 @@ qualquer PC com o login:
 
 | Item | Onde |
 |---|---|
-| Dataset anotado (200 imgs, 3 classes) | studio.edgeimpulse.com → projeto **AssemblyGuard** (ID **1095021**), conta `Carlosengauto21` |
+| Dataset anotado (200 imgs; 4 classes no modelo v2) | studio.edgeimpulse.com → projeto **AssemblyGuard** (ID **1095021**), conta `Carlosengauto21` |
 | Impulse, modelo treinado, builds | mesmo projeto, menu *Impulse design* / *Deployment* |
 
 > ⚠️ No PC novo, os scripts Python apontam para os vídeos em `D:\` (raiz).
@@ -68,7 +69,7 @@ qualquer PC com o login:
   60 Testing). **Nunca** usar "Perform train/test split" no EI — destruiria a
   separação por sessão.
 
-### 2.2 Anotação (concluída, por IA — revisão humana PENDENTE)
+### 2.2 Anotação (automática por IA; depois revisada pelo grupo para o modelo v2)
 - Usado o **AI labeling do EI (OWL-ViT zero-shot)** em duas passadas:
   1. `blue round plastic piece (peca, 0.15)` + `stack of blue plastic pieces
      (pilha, 0.15)` + `soldering iron (ferro_solda, 0.1)` em todo o dataset;
@@ -106,7 +107,8 @@ qualquer PC com o login:
 ### 2.5 Firmware (pronto para compilar)
 `AssemblyGuard_XIAO.ino` — arquivo único com:
 - Câmera OV2640 (JPEG QVGA, framebuffer na PSRAM);
-- Inferência FOMO → centroides das 3 classes;
+- Inferência FOMO → centroides das classes do modelo (v2: 4 classes; as
+  zonas usam peca, pilha e ferro_solda);
 - **Mapa de zonas** (frações do frame, constantes no topo — calibrar na
   bancada): entrada à direita, bancada, descanso do ferro, saída à esquerda;
 - **Máquina de estados** espera → preparo → montagem → solda → empilhagem →
@@ -120,12 +122,13 @@ qualquer PC com o login:
 
 ---
 
-## 3. O QUE FALTA — na ordem
+## 3. Passos após o handoff — situação em setembro de 2026
 
-### Passo 1 — Revisar as anotações (a alavanca de qualidade nº 1)
-**Decisão de 25/08:** entra uma 4ª classe, **`aplicador_cola`** (a ferramenta
-verde) — anotar na mesma passada de revisão. Guia dedicado para quem for
-revisar: `GUIA_ESTAGIARIA.md`.
+### Passo 1 — Revisar as anotações — **concluído** (revisão pelo grupo; 4 classes no v2)
+**Decisão de 25/08:** entra uma 4ª classe, **`aplicador_cola`** (a pistola
+de cola quente, corpo laranja — o ferro de solda é o de cabo verde) —
+anotar na mesma passada de revisão. Regras de anotação: Fase 2 de
+`docs/GUIA_EDGE_IMPULSE.md`.
 
 No Studio: **Data acquisition → clicar num sample → corrigir as caixas →
 Save**. Prioridades, do mais ao menos importante:
@@ -139,8 +142,8 @@ Save**. Prioridades, do mais ao menos importante:
 5. Caixas em lugar nenhum (fantasmas) → deletar.
 
 Por causa da classe nova, a meta passa a ser percorrer as 200 imagens.
-Frames B (teste) também contam — o ground truth do teste hoje também é
-automático.
+Frames B (teste) também contam — na época deste handoff, o ground truth do
+teste também era automático.
 
 **Atualização 28/08 — decisão sobre o ciclo no firmware:** o ciclo real
 tem 2 rodadas de solda+cola/montagem e fecha com **2 pilhas** na saída
@@ -152,20 +155,20 @@ de explicar. O modelo v2 detecta `aplicador_cola`; o firmware imprime a
 detecção no Serial mas não a usa na máquina de estados. Refinar o ciclo
 para a versão real fica como melhoria pós-demo.
 
-### Passo 2 — Retreinar e reavaliar
+### Passo 2 — Retreinar e reavaliar — retreino **concluído** (v2, export 1.0.2); comparação formal com o baseline pendente
 Menu **Retrain model** → depois **Model testing → Classify all**. Metas da
 tabela de critérios (`PLANO_V2_DETECCAO.md`): F1 ≥ 0,80 por classe, ≥ 0,85
 global. Compare com o baseline (0,54 val / 0,23 teste) para mostrar o efeito
 da revisão no relatório — isso é resultado, não retrabalho.
 
-### Passo 3 — Rebuild + flash
+### Passo 3 — Rebuild + flash — **concluído**
 1. **Deployment → Build** (Arduino library, int8, EON) → baixa o ZIP v2.
    *(No PC do Carlos o Chrome baixa em `D:\`, não em Downloads.)*
 2. Arduino IDE 2.x → Boards Manager → **esp32 by Espressif v2.0.17**
    (⚠️ série 3.x quebra os exports do EI). URL de boards:
    `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
-3. **Sketch → Include Library → Add .ZIP Library** → o ZIP (v1 desta pasta
-   serve para o primeiro teste; v2 quando existir).
+3. **Sketch → Include Library → Add .ZIP Library** → o ZIP (use o 1.0.2 =
+   v2, em `modelos/`).
 4. Abrir `AssemblyGuard_XIAO.ino` → Board **XIAO_ESP32S3** →
    **PSRAM: OPI PSRAM** (⚠️ sem isso a câmera não sobe) → Upload
    (se falhar: segurar BOOT ao plugar o USB).
@@ -173,7 +176,7 @@ da revisão no relatório — isso é resultado, não retrabalho.
 6. microSD **FAT32 ≤ 32 GB** no slot. ⚠️ LED e SD compartilham o GPIO21
    (já tratado no firmware).
 
-### Passo 4 — Demo de mesa (sem fábrica)
+### Passo 4 — Demo de mesa (sem fábrica) — **em andamento** (calibração das zonas; regravar com o pré-processamento corrigido em 28/09)
 Apontar o XIAO para um monitor reproduzindo `videos/WhatsApp Video
 2026-08-12 at 15.43.32.mp4` (sessão C) em tela cheia. Conectar na rede
 "AssemblyGuard" → http://192.168.4.1 → ajustar as **zonas** no topo do `.ino`
@@ -183,8 +186,8 @@ Legítimo para a apresentação, desde que declarado no slide.
 ### Passo 5 — Validação de verdade (critérios 6–8)
 ≥ 10 ciclos + 10 desvios induzidos (pular solda, empilhar antes da hora),
 contando FP/FN pelo CSV do microSD. Tabela completa de critérios e marcos:
-`PLANO_V2_DETECCAO.md` (o projeto está no marco **M4 parcial** — modelo
-baixado, falta rodar no hardware).
+`PLANO_V2_DETECCAO.md`. Situação atual dos marcos (M4 concluído: rodando no
+hardware com latência medida): seção 8.3 de `docs/RELATORIO_PROJETO.md`.
 
 ### Melhorias conhecidas (depois do demo funcionar)
 - Capturar 60–80 fotos **com o próprio XIAO** na bancada, anotar e
@@ -203,7 +206,7 @@ baixado, falta rodar no hardware).
 | `LEIA-ME_PRIMEIRO.md` | **este arquivo** — handoff detalhado |
 | `docs/PLANO_V2_DETECCAO.md` | resposta ponto a ponto ao mentor: arquitetura V2, critérios de sucesso, marcos |
 | `docs/GUIA_EDGE_IMPULSE.md` | passo a passo detalhado do Studio (upload → anotação → treino → deploy → flash) |
-| `docs/GUIA_ESTAGIARIA.md` (+ `.html`) | guia de anotação/retreino/export para quem revisa o dataset |
+| `docs/RELATORIO_PROJETO.md` | relatório técnico do projeto (entrega do curso) |
 | `docs/DOCUMENTACAO_PREPARACAO_DATASET.md` | histórico da V1 (classificação) — seção 9 marca o que foi superado |
 | `AssemblyGuard_XIAO/AssemblyGuard_XIAO.ino` | **firmware** (FOMO + zonas + estados + SD + painel web com overlay) |
 | `modelos/ei-assemblyguard-arduino-1.0.1.zip` | modelo v1 (baseline) — biblioteca Arduino p/ Add .ZIP Library |

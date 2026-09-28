@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 .DS_Store
 Thumbs.db
+
+# arquivos locais (não versionados)
+docs/GUIA_ESTAGIARIA.md
+docs/GUIA_ESTAGIARIA.html
+docs/ROTEIRO_VIDEO_15MIN.md

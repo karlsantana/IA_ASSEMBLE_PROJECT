@@ -25,7 +25,8 @@ registrados em CSV no microSD. Um painel web local exibe vídeo, zonas,
 detecções e estado sem depender de nuvem durante a operação.
 
 > **Contexto:** projeto do curso IESTI01 — TinyML, com mentoria do Prof. Marcelo
-> Rovai e desenvolvimento na Bottomup Engenharia.
+> Rovai, desenvolvido na BottomUP Technology pelo grupo Carlos Santana, Felipe
+> Patrício, Julio Silva, Ewerton Victor e Marco Antônio.
 
 ## Visão geral
 
@@ -75,7 +76,7 @@ Após o workflow terminar, a página estará em
 | --- | --- | --- |
 | **Preparação** | Inspecionar vídeos, remover overlays e extrair frames | vídeos → dataset 320×240 |
 | **Anotação e treino** | Revisar caixas no Edge Impulse e treinar FOMO | imagens → modelo int8/EON |
-| **Validação no PC** | Testar inferência e a lógica de estados antes do hardware | vídeo/RTSP/webcam → CSV + overlay |
+| **Validação no PC** | Testar inferência e zonas antes do hardware (rascunho: 3 classes do v1) | vídeo/RTSP/webcam → CSV + overlay |
 | **Firmware** | Inferir na câmera, validar sequência e registrar evidências | OV2640 → Serial, web, SD |
 
 ## Resultado atual
@@ -87,16 +88,16 @@ Após o workflow terminar, a página estará em
 | Hardware | XIAO ESP32S3 Sense, OV2640, PSRAM OPI e microSD FAT32 |
 | Desempenho observado | aproximadamente 143 ms por inferência, cerca de 4 fps |
 | Monitoramento | Access Point `AssemblyGuard`, painel em `http://192.168.4.1` |
-| Limitação conhecida | a revisão humana das caixas e a validação de pelo menos 10 ciclos ainda são etapas de qualidade |
+| Limitação conhecida | calibração das zonas e validação de campo (≥ 10 ciclos e 10 desvios induzidos) em andamento; throughput abaixo da meta de 5 fps |
 
 ## Comece aqui
 
 1. Leia [LEIA-ME_PRIMEIRO.md](LEIA-ME_PRIMEIRO.md) para histórico, decisões,
    pendências e transferência do projeto para outro computador.
-2. Consulte [docs/GUIA_EDGE_IMPULSE.md](docs/GUIA_EDGE_IMPULSE.md) para treino,
-   exportação e gravação do firmware.
-3. Veja [docs/GUIA_ESTAGIARIA.md](docs/GUIA_ESTAGIARIA.md) para revisão das
-   anotações e retreino.
+2. Leia o [relatório técnico](docs/RELATORIO_PROJETO.md) para a explicação
+   completa do projeto, resultados e lições aprendidas.
+3. Consulte [docs/GUIA_EDGE_IMPULSE.md](docs/GUIA_EDGE_IMPULSE.md) para
+   anotação, treino, exportação e gravação do firmware.
 4. Consulte o [catálogo de funções](docs/funcoes/README.md) para entender cada
    função e método do código-fonte.
 
@@ -121,6 +122,10 @@ python scripts/assemblyguard_pc.py \
 Também são aceitos uma URL RTSP ou webcam (`--source 0`). Use `q` para sair,
 `p` para pausar e `s` para salvar uma captura.
 
+> Rascunho: o script ainda usa as 3 classes do v1 e a máquina de estados
+> anterior (relatório, seção 7). O arquivo `.tflite` não está no repositório;
+> ele é exportado do projeto no Edge Impulse.
+
 ### Preparar o dataset V2
 
 Os caminhos dos vídeos estão configurados nos dicionários `VIDEOS` dos scripts.
@@ -130,7 +135,7 @@ Ajuste-os para a sua máquina antes de executar:
 python scripts/inspecionar_videos.py
 python scripts/pipeline_deteccao.py --preview
 python scripts/pipeline_deteccao.py
-python scripts/gerar_preanotacao.py
+python scripts/gerar_preanotacao.py   # opcional: descartado, mantido como registro
 ```
 
 O `--preview` deve ser conferido antes da extração. Depois, revise as caixas
@@ -170,11 +175,12 @@ preencha `WIFI_STA_SSID` e `WIFI_STA_PASS` no sketch.
   preservada em `pipeline_assemblyguard.py` para comparação histórica.
 - O estado só avança após três leituras consecutivas e não regride. Uma etapa
   pulada gera alerta, mas não bloqueia o fechamento do ciclo.
-- `aplicador_cola` aparece na interface e pode ser anotado no modelo futuro,
-  porém ainda não é usado como transição na máquina de estados atual.
+- `aplicador_cola` já é detectado pelo modelo v2 e aparece no painel, porém
+  ainda não é usado como transição na máquina de estados atual.
 
 ## Documentação complementar
 
+- [**Relatório técnico do projeto**](docs/RELATORIO_PROJETO.md)
 - [Árvore interativa de processos](docs/arvore-processos.html)
 - [Logo vetorial do projeto](docs/assets/assemblyguard-logo.svg)
 - [Plano V2 e critérios de sucesso](docs/PLANO_V2_DETECCAO.md)

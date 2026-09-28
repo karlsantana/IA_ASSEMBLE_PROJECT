@@ -29,7 +29,7 @@
       "id": "inspecao",
       "icon": "01",
       "title": "Inspeção dos vídeos",
-      "file": "https://github.com/karlsantana/IA_ASSEMBLE_PROJECT/blob/main/docs/scripts/inspecionar_videos.py",
+      "file": "https://github.com/karlsantana/IA_ASSEMBLE_PROJECT/blob/main/scripts/inspecionar_videos.py",
       "status": "done",
       "statusText": "concluído",
       "summary": "Confirma alinhamento entre sessões, layout da bancada, overlays e ROI antes de gerar qualquer frame.",
@@ -66,17 +66,17 @@
       "icon": "03",
       "title": "Anotação e revisão",
       "file": "https://github.com/karlsantana/IA_ASSEMBLE_PROJECT/blob/main/scripts/gerar_preanotacao.py",
-      "status": "review",
-      "statusText": "revisão",
-      "summary": "Gera caixas preliminares e transfere a revisão final para o Edge Impulse antes do treinamento.",
+      "status": "done",
+      "statusText": "concluído",
+      "summary": "Anotação automática no Edge Impulse (AI labeling) seguida de revisão humana das caixas pelo grupo.",
       "points": [
-        "Detecta candidatos por cor e geometria.",
-        "Classes principais: peca, pilha e ferro_solda.",
-        "A revisão humana é obrigatória para corrigir falsos positivos e caixas ausentes."
+        "AI labeling (OWL-ViT) seguido de revisão humana pelo grupo.",
+        "Classes do modelo v2: peca, pilha, ferro_solda e aplicador_cola.",
+        "Pré-anotação local por cor descartada (script mantido como registro)."
       ],
       "links": [
         { "label": "Código", "href": "https://github.com/karlsantana/IA_ASSEMBLE_PROJECT/blob/main/scripts/gerar_preanotacao.py" },
-        { "label": "Guia", "href": "https://github.com/karlsantana/IA_ASSEMBLE_PROJECT/blob/main/docs/GUIA_ESTAGIARIA.md" }
+        { "label": "Guia", "href": "https://github.com/karlsantana/IA_ASSEMBLE_PROJECT/blob/main/docs/GUIA_EDGE_IMPULSE.md" }
       ]
     },
     {
@@ -102,13 +102,13 @@
       "icon": "05",
       "title": "Validação no PC",
       "file": "https://github.com/karlsantana/IA_ASSEMBLE_PROJECT/blob/main/scripts/assemblyguard_pc.py",
-      "status": "done",
-      "statusText": "disponível",
+      "status": "review",
+      "statusText": "rascunho",
       "summary": "Executa o modelo em vídeo, RTSP ou webcam e reproduz a interpretação de zonas antes do deploy.",
       "points": [
         "Decodifica mapas FOMO e centroides.",
-        "Desenha zonas, confiança e estado.",
-        "Registra latência e alertas em CSV."
+        "Desenha zonas, confiança e estado; registra latência e alertas em CSV.",
+        "Ainda com as 3 classes do v1 e a máquina de estados anterior."
       ],
       "links": [
         { "label": "Código", "href": "https://github.com/karlsantana/IA_ASSEMBLE_PROJECT/blob/main/scripts/assemblyguard_pc.py" },

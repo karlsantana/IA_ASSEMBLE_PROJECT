@@ -571,10 +571,12 @@ void loop() {
     signal.total_length = EI_CLASSIFIER_INPUT_WIDTH * EI_CLASSIFIER_INPUT_HEIGHT;
     signal.get_data = &ei_camera_get_data;
 
-    // redimensiona 320x240 -> entrada do modelo (squash, como no treino)
-    ei::image::processing::crop_and_interpolate_rgb888(
+    // redimensiona 320x240 -> entrada do modelo por SQUASH, como no treino.
+    // (crop_and_interpolate_rgb888 recortaria o centro 240x240 e jogaria
+    //  fora as faixas laterais - justamente as zonas de entrada e saida)
+    ei::image::processing::resize_image(
         rgb888, CAM_W, CAM_H,
-        rgb888, EI_CLASSIFIER_INPUT_WIDTH, EI_CLASSIFIER_INPUT_HEIGHT);
+        rgb888, EI_CLASSIFIER_INPUT_WIDTH, EI_CLASSIFIER_INPUT_HEIGHT, 3);
 
     ei_impulse_result_t result = {0};
     uint32_t t0 = millis();
